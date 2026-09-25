@@ -2081,6 +2081,13 @@ a, button, .card, .fcard, .tab, .pg {
     /* 触摸目标放大 */
     .tab { min-height: 46px; font-size: 15px; }
 
+    /* 抽屉只做一级导航：隐藏展开箭头（否则看着像还能点开），
+       并收掉为箭头预留的右侧内边距，让所有一级项左右留白一致 */
+    #sidebar .tab.has-sub { padding-right: 12px; }   /* 用 id 提权，压过后面同名的 .sidebar .tab.has-sub */
+    #sidebar .sub-toggle { display: none; }
+    /* 兜底：抽屉里永不展示二级列表（二级改由主页面上方的横滑 chip 选择） */
+    #sidebar .sub-list { display: none; }
+
     /* 抽屉打开时，避免底部被 home indicator 遮挡 */
     @supports (padding: env(safe-area-inset-bottom)) {
         .sidebar { padding-bottom: calc(16px + env(safe-area-inset-bottom)); }

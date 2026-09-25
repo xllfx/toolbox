@@ -584,11 +584,21 @@
         return m[cat] || CAT_ICON_DEFAULT[i % CAT_ICON_DEFAULT.length];
     }
 
+    // 是否处于「窄屏抽屉」形态（与 CSS 的 899px 断点保持一致）
+    function isDrawerMode() {
+        return !!(window.matchMedia && window.matchMedia('(max-width: 899px)').matches);
+    }
+
     // 点一级类目：有二级就切换展开（手风琴，同时只开一个），无二级就直接筛选
     function onPickCat(cat) {
         var subs = subCatsOf(cat);
 
-        if (subs.length) {
+        // 手机抽屉：只当一级导航用 —— 点即筛选并关闭抽屉，绝不展开二级
+        if (isDrawerMode()) {
+            openCat = '';
+            curCat  = cat;
+            curSub  = '';
+        } else if (subs.length) {
             // 再点同一个 = 收起；点别的 = 收起旧的、展开新的
             if (openCat === cat) {
                 openCat = '';
@@ -609,7 +619,7 @@
         renderTabs();
         renderSubBar();
         renderAll();
-        if (window.matchMedia && window.matchMedia('(max-width: 899px)').matches) {
+        if (isDrawerMode()) {
             closeSidebar();
         }
     }
@@ -618,12 +628,13 @@
     function onPickSub(cat, sub) {
         curCat  = cat;
         curSub  = sub;
-        openCat = cat;
+        // 手机抽屉不保留展开态，否则下次打开抽屉会带着二级列表
+        openCat = isDrawerMode() ? '' : cat;
         curPage = 1;
         renderTabs();
         renderSubBar();
         renderAll();
-        if (window.matchMedia && window.matchMedia('(max-width: 899px)').matches) {
+        if (isDrawerMode()) {
             closeSidebar();
         }
     }
@@ -656,7 +667,8 @@
             var n    = catCount(c);
             var on   = (c === curCat);
             var subs = subCatsOf(c);
-            var open = (openCat === c) && subs.length > 0;
+            // 渲染兜底：抽屉形态下永远不展开二级（无论 openCat 是否残留）
+            var open = !isDrawerMode() && (openCat === c) && subs.length > 0;
 
             sideHtml +=
                 '<button class="tab' + (on ? ' on' : '') + (subs.length ? ' has-sub' : '') + '"' +
@@ -784,6 +796,12 @@
 
     function openSidebar() {
         if (!sidebarEl) return;
+        // 手机抽屉每次打开都回到「纯一级目录」：
+        // 若之前在桌面端展开过二级（或残留 openCat），这里先收起再渲染
+        if (isDrawerMode() && openCat) {
+            openCat = '';
+            renderTabs();
+        }
         lastFocusBeforeSidebar = document.activeElement;
         sidebarEl.classList.add('on');
         if (maskEl) maskEl.classList.add('on');
