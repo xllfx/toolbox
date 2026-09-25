@@ -5,7 +5,7 @@
 
 :root {
     /* 统一内容宽度：header / 轮播 / 分栏 全部用它，保证左右边界对齐 */
-    --shell-w: 1400px;
+    --shell-w: 1200px;
     /* 背景：光晕 + 底色渐变叠加（不是纯色） */
     --bg: #0a1017;
     --bg-grad:
@@ -38,6 +38,12 @@
     --control-bg: #ffffff12;
     --control-border: #e0eaf424;
     --chip-muted: #e0eaf41f;
+
+    /* 手机抽屉：必须是不透明实色 + 明显描边。
+       桌面 --card 在浅色下是 #fffd（87% 半透明白），
+       抽屉若沿用会把遮罩的黑透进来 → 发灰发暗、轮廓消失 */
+    --drawer-bg: #22303f;
+    --drawer-border: #e0eaf45c;
 
     /* 文字三级色阶：strong(标题) / base(正文) / soft(辅助) */
     --text-strong: #f2f7fc;
@@ -78,6 +84,11 @@ html[data-theme="light"] {
     --control-bg: #ffffffd1;
     --control-border: #121a2214;
     --chip-muted: #121a2214;
+
+    /* 浅色下抽屉用纯白实色：--card 是 #fffd（半透明），
+       沿用会把遮罩的黑透进来 → 抽屉发灰、边缘糊掉 */
+    --drawer-bg: #ffffff;
+    --drawer-border: #121a2252;
 
     --text-strong: #121a22;
     --text-soft: color-mix(in srgb, var(--muted) 86%, #fff 14%);
@@ -1445,9 +1456,27 @@ a, button, .card, .fcard, .tab, .pg {
     .theme-btn, .pg { min-width: 44px; height: 44px; }
     .s-arrow { width: 40px; height: 40px; }
 
-    /* 搜索框在窄屏收窄，避免把品牌名挤没 */
-    .h-search input { width: 120px; }
-    .h-search input:focus { width: 140px; }
+    /* 顶部分类胶囊：单行横滑 + 统一 44px 触控高度（原来 35px 偏小、
+       换行后还会高低错落） */
+    .nav-tabs { flex-wrap: nowrap; justify-content: flex-start; padding-bottom: 2px; }
+    .tab-pill {
+        padding: 10px 14px;
+        min-height: 44px;
+        box-sizing: border-box;
+        display: inline-flex;
+        align-items: center;
+    }
+
+    /* 搜索框：吃掉剩余空间，聚焦时【不再变宽】。
+       原来 focus 会 120px→140px，把 header 撑到换行，
+       搜索框因此「跳」到下一行（iPhone 上最明显的错位）。 */
+    /* flex-basis 必须是 0 而不是 auto：
+       换行判定发生在收缩【之前】，用 auto 会按 input 的默认宽(约 210px)
+       判定为放不下而换行；basis:0 则先留在第一行，再分配剩余空间。 */
+    .header-right { flex: 1 1 0; min-width: 0; }
+    .h-search { flex: 1 1 0; min-width: 0; }
+    .h-search input { width: 100%; min-width: 0; font-size: 16px; }
+    .h-search input:focus { width: 100%; }
 
     /* 轮播：字小一点，emoji 让位 */
     .slider-view { height: 170px; }
@@ -1575,8 +1604,9 @@ a, button, .card, .fcard, .tab, .pg {
 /* ---------- ≤ 380px：小屏手机 ---------- */
 @media (max-width: 380px) {
     .brand-name { display: none; }        /* 只留 logo */
-    .h-search input { width: 96px; }
-    .h-search input:focus { width: 120px; }
+    .h-search input { width: 100%; font-size: 16px; }
+    .h-search input:focus { width: 100%; }
+    .tab-pill { padding: 10px 12px; }
     .slider-view { height: 132px; }
     .slide-emoji { display: none; }       /* emoji 让位给文字 */
     .foot-cards { grid-template-columns: 1fr; }  /* 底部卡片单列 */
@@ -1765,11 +1795,15 @@ a, button, .card, .fcard, .tab, .pg {
 }
 
 /* ---------- 顶部分类导航条（水平胶囊） ---------- */
+/* ★ 注意：这里原来是 flex-wrap:wrap，会把胶囊挤成两行、高度不齐。
+     改成 nowrap + overflow-x:auto（后者在 1042 行已声明），
+     超宽时横向滑动，永远保持单行、等高。 */
 .nav-tabs {
     display: flex;
     align-items: center;
     gap: 6px;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
     min-width: 0;
 }
 .tab-pill {
@@ -1992,9 +2026,10 @@ a, button, .card, .fcard, .tab, .pg {
     position: fixed;
     inset: 0;
     z-index: 104;
-    background: rgba(0, 0, 0, .46);
-    -webkit-backdrop-filter: blur(2px);
-    backdrop-filter: blur(2px);
+    /* 0.46 太重：会把背景压到和抽屉一样的黑度，轮廓直接糊掉 */
+    background: rgba(0, 0, 0, .30);
+    -webkit-backdrop-filter: blur(3px);
+    backdrop-filter: blur(3px);
     opacity: 0;
     pointer-events: none;
     transition: opacity .25s ease;
@@ -2024,7 +2059,15 @@ a, button, .card, .fcard, .tab, .pg {
         /* 从左侧滑出 */
         transform: translateX(-102%);
         transition: transform .28s cubic-bezier(.22, 1, .36, 1);
-        box-shadow: 0 24px 60px rgba(0, 0, 0, .35);
+
+        /* 抽屉专用：不透明实色 + 明确描边 + 强外阴影
+           桌面那个渐变底部混了 10% 黑，手机上抽屉全高会明显下半截发暗；
+           且浅色 --card 是 #fffd 半透明，会把遮罩的黑透进来 */
+        background: var(--drawer-bg);
+        background-image: none;
+        border-color: var(--drawer-border);
+        /* 第 1 层是 1px 描边（勾出轮廓），第 2 层大扩散阴影（制造浮起） */
+        box-shadow: 0 18px 48px rgba(0, 0, 0, .46);
     }
     .sidebar.on { transform: translateX(0); }
 
@@ -2563,4 +2606,19 @@ html[data-theme="light"] .sub-chip.on {
 }
 @media (max-width: 380px) {
     .content .subbar { padding-left: 0; padding-right: 0; }
+}
+
+/* ============================================================
+   触屏设备：顶部分类胶囊统一 44px 触控高度
+   （平板 / 大屏手机不在 ≤720px 断点内，用 hover:none 兜住所有触屏）
+   ============================================================ */
+@media (hover: none) {
+    .tab-pill {
+        min-height: 44px;
+        padding: 10px 14px;
+        box-sizing: border-box;
+        display: inline-flex;
+        align-items: center;
+    }
+    .sub-chip { padding: 8px 14px; }
 }
