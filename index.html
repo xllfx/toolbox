@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <!-- viewport-fit=cover：配合 safe-area-inset 适配刘海屏/挖孔屏 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#0a1017" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#f6f3ee" media="(prefers-color-scheme: light)" />
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="description" content="收录 AI 工具、效率软件、项目资源和素材合集，持续更新可领取的实用资源。" />
+    <title>小雷工具箱 - AI工具、效率软件与素材资源库</title>
+
+    <!-- 提前与图标服务握手，加快首屏图片出现 -->
+    <link rel="preconnect" href="https://favicon.im" crossorigin>
+    <link rel="preconnect" href="https://api.iowen.cn" crossorigin>
+
+    <!-- ★ 主题预置：必须在任何 CSS/渲染之前执行，
+             否则首屏会先画深色再跳浅色（这就是「闪一下」的来源） -->
+    <script>
+    (function () {
+        try {
+            var saved = localStorage.getItem('toolbox-theme');
+            var sysLight = window.matchMedia &&
+                           window.matchMedia('(prefers-color-scheme: light)').matches;
+            document.documentElement.setAttribute(
+                'data-theme', saved || (sysLight ? 'light' : 'dark'));
+        } catch (e) {}
+    })();
+    </script>
+
+    <!-- 关键 CSS 直接内联，避免首屏白屏（样式表加载完后再接管） -->
+    <style>
+        html { background: #0a1017; }
+        html[data-theme="light"] { background: #f6f3ee; }
+        body { margin: 0; min-height: 100vh;
+               font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; }
+        .boot-veil { position: fixed; inset: 0; background: #0a1017; z-index: 9999; }
+        html[data-theme="light"] .boot-veil { background: #f6f3ee; }
+    </style>
+
+    <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+
+<!-- 首屏遮罩：脚本跑起来后移除，杜绝深色/浅色闪一下 -->
+<div class="boot-veil" id="boot-veil"></div>
+
+<!-- 键盘用户可直接跳到主内容 -->
+<a class="skip-link" href="#grid">跳到主内容</a>
+
+<!-- ===== 吸顶导航栏（滚动时永远在最顶端） ===== -->
+<header class="site-header" id="header">
+    <div class="header-inner">
+        <!-- 电脑端：控制左侧栏显示 / 隐藏（xllfx 风格动画汉堡） -->
+        <label class="mini-btn side-switch" id="side-switch" title="显示 / 隐藏分类栏">
+            <input id="side-toggle" type="checkbox">
+            <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path class="line--1" d="M0 40h62c18 0 18-20-17 5L31 55"></path>
+                <path class="line--2" d="M0 50h80"></path>
+                <path class="line--3" d="M0 60h62c18 0 18 20-17-5L31 45"></path>
+            </svg>
+            <span class="sr-only">显示或隐藏左侧分类栏</span>
+        </label>
+
+        <!-- 手机端：汉堡按钮，点开左侧分类抽屉 -->
+        <button class="menu-btn" id="menu-btn" type="button"
+                aria-label="打开分类菜单" aria-expanded="false" aria-controls="sidebar">
+            <span></span><span></span><span></span>
+        </button>
+
+        <a class="brand" href="./index.html">
+            <span class="brand-logo">🧰</span>
+            <span class="brand-name" id="brand-name">小雷工具箱</span>
+        </a>
+
+        <!-- 顶部分类导航条（由 app.js 渲染，与左侧栏同步） -->
+        <nav class="nav-tabs" id="tabs-top" aria-label="快速分类切换"></nav>
+
+        <div class="header-right">
+            <div class="h-search">
+                <span class="ico">🔍</span>
+                <input id="search" type="text" placeholder="搜索工具…" autocomplete="off">
+            </div>
+            <!-- 白天 / 黑夜切换 -->
+            <button class="theme-btn" id="theme-btn" type="button" aria-label="切换主题">🌙</button>
+        </div>
+    </div>
+</header>
+
+<main class="page-main">
+
+    <!-- 左：分类导航（独立容器，可被顶部按钮隐藏）　右：内容 -->
+    <div class="app-shell">
+
+        <!-- 左侧分类导航（PC 常驻；手机为抽屉，由汉堡按钮唤出） -->
+        <aside class="sidebar" id="sidebar" aria-label="分类导航">
+            <div class="side-head">
+                <span class="side-title">分类导航</span>
+                <button class="side-close" id="side-close" type="button" aria-label="关闭分类菜单">✕</button>
+            </div>
+            <!-- 分类按钮由 app.js 渲染 -->
+            <nav class="side-nav" id="tabs" aria-label="分类列表"></nav>
+            <!-- 统计信息由 app.js 渲染 -->
+            <div class="side-foot" id="side-stat"></div>
+        </aside>
+
+        <!-- 右侧内容 -->
+        <div class="content">
+            <!-- 工具动态轮播（由 app.js 自动渲染） -->
+            <section class="slider" id="slider" aria-label="工具动态轮播"></section>
+
+            <!-- 更新动态横条（由 app.js 自动渲染） -->
+            <section class="newsbar" id="newsbar" aria-label="工具箱动态"></section>
+
+            <!-- 二级类目模块（独立区块，选中一级分类时才出现） -->
+            <section class="subbar" id="subbar" aria-label="二级分类"></section>
+
+            <!-- 卡片列表（由 app.js 渲染成 <article>） -->
+            <section class="grid" id="grid" aria-label="资源列表"></section>
+
+            <!-- 分页（由 app.js 自动渲染） -->
+            <nav class="pager" id="pager" aria-label="分页"></nav>
+
+            <!-- 底部四张信息卡片：关于 / 反馈 / 免责 / 投稿 -->
+            <section class="foot-cards" id="foot-cards" aria-label="站点信息"></section>
+        </div>
+
+    </div>
+
+</main>
+
+<!-- 手机端抽屉遮罩 -->
+<div class="sidebar-mask" id="sidebar-mask"></div>
+
+<!-- 弹窗容器：overlay > dialog -->
+<div class="mask" id="mask">
+    <div class="modal" id="modal-box"></div>
+</div>
+
+<!-- 合规页脚：站点名 / 说明 / 备案号 / 反馈链接（内容在 tools.js 的 SITE.footer 里改） -->
+<footer class="site-foot" id="site-foot"></footer>
+
+<!-- 数据 + 逻辑：改内容只动 tools.js -->
+<script src="./tools.js"></script>
+<script src="./app.js"></script>
+
+<!-- 内容渲染完成后移除首屏遮罩 -->
+<script>
+(function () {
+    var v = document.getElementById('boot-veil');
+    if (!v) return;
+    v.style.transition = 'opacity .18s ease';
+    v.style.opacity = '0';
+    setTimeout(function () { if (v.parentNode) v.parentNode.removeChild(v); }, 200);
+})();
+</script>
+
+</body>
+</html>
