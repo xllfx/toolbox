@@ -10,6 +10,14 @@
     <meta name="description" content="收录 AI 工具、效率软件、项目资源和素材合集，持续更新可领取的实用资源。" />
     <title>小雷工具箱 - AI工具、效率软件与素材资源库</title>
 
+    <!-- ===== 浏览器标签图标（favicon）：emoji 工具箱，内嵌 SVG，无需任何图片文件 ===== -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20100%20100'%3E%3Crect%20width='100'%20height='100'%20rx='22'%20fill='%234b8cff'/%3E%3Ctext%20x='50'%20y='71'%20font-size='58'%20text-anchor='middle'%3E%F0%9F%A7%B0%3C/text%3E%3C/svg%3E">
+
+    <!-- 备选：若某些浏览器（如 Safari）不显示 SVG 内的 emoji，
+         可把 favicon.png 一起上传到同目录，然后启用下面这行、注释掉上面那行：
+    <link rel="icon" type="image/png" sizes="256x256" href="./favicon.png"> -->
+
+
     <!-- 提前与图标服务握手，加快首屏图片出现 -->
     <link rel="preconnect" href="https://favicon.im" crossorigin>
     <link rel="preconnect" href="https://api.iowen.cn" crossorigin>
@@ -73,9 +81,6 @@
             <span class="brand-name" id="brand-name">小雷工具箱</span>
         </a>
 
-        <!-- 顶部分类导航条（由 app.js 渲染，与左侧栏同步） -->
-        <nav class="nav-tabs" id="tabs-top" aria-label="快速分类切换"></nav>
-
         <div class="header-right">
             <div class="h-search">
                 <span class="ico">🔍</span>
@@ -86,6 +91,14 @@
         </div>
     </div>
 </header>
+
+<!-- ===== 分类导航条：独立于导航栏的单独模块，横向排列 + 横向滚动 ===== -->
+<div class="tabs-rail" id="tabs-rail">
+    <div class="tabs-rail-inner">
+        <!-- 分类胶囊由 app.js 渲染，与左侧栏同步 -->
+        <nav class="nav-tabs" id="tabs-top" aria-label="快速分类切换"></nav>
+    </div>
+</div>
 
 <main class="page-main">
 
@@ -152,6 +165,39 @@
     v.style.transition = 'opacity .18s ease';
     v.style.opacity = '0';
     setTimeout(function () { if (v.parentNode) v.parentNode.removeChild(v); }, 200);
+})();
+</script>
+
+<!-- 把导航栏 / 分类条的实际高度写进 CSS 变量，供吸顶与锚点定位使用。
+     分类条独立成块后，导航栏高度不再忽高忽低，这里实测即准。 -->
+<script>
+(function () {
+    var header = document.getElementById('header');
+    var rail   = document.getElementById('tabs-rail');
+    var tabs   = document.getElementById('tabs-top');
+    function sync() {
+        var root = document.documentElement;
+        if (header) root.style.setProperty('--header-h', (header.offsetHeight || 62) + 'px');
+        if (rail)   root.style.setProperty('--rail-h',   (rail.offsetHeight   || 54) + 'px');
+        fade();
+    }
+    /* 两端渐隐：还有内容可滑时才显示，滑到头自动消失 */
+    function fade() {
+        if (!tabs || !rail) return;
+        var left  = tabs.scrollLeft;
+        var right = tabs.scrollWidth - tabs.clientWidth - left;
+        rail.classList.toggle('fade-l', left  > 4);
+        rail.classList.toggle('fade-r', right > 4);
+    }
+    if (tabs) tabs.addEventListener('scroll', fade, { passive: true });
+    window.addEventListener('resize', sync);
+    window.addEventListener('load', sync);
+    if (window.ResizeObserver && header && rail) {
+        try { new ResizeObserver(sync).observe(header);
+              new ResizeObserver(sync).observe(rail); } catch (e) {}
+    }
+    sync();
+    setTimeout(sync, 300);
 })();
 </script>
 

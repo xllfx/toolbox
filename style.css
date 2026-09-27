@@ -1049,16 +1049,66 @@ html[data-theme="light"] .site-header.scrolled {
 }
 .brand-name { font-size: 16px; font-weight: 700; white-space: nowrap; }
 
-/* 分类导航放进 header */
+/* ============================================================
+   分类导航条：独立模块（导航栏下方单独一行）
+   ★ 已从头部分离：header 只留「品牌 + 搜索 + 主题」，
+     高度不再随分类换行而变，宽度变化时的跳位/错位从根上消失
+   ============================================================ */
+.tabs-rail {
+    /* 吸顶在导航栏正下方：--header-h 由 JS 按实测高度写入，
+       header 不再因分类换行忽高忽低，所以这里不会错位 */
+    position: sticky;
+    top: var(--header-h, 62px);
+    z-index: 95;
+    background: color-mix(in srgb, var(--bg) 82%, transparent);
+    -webkit-backdrop-filter: saturate(180%) blur(14px);
+    backdrop-filter: saturate(180%) blur(14px);
+    border-bottom: 1px solid var(--line);
+}
+/* 老浏览器兜底：不支持 color-mix 时用半透明背景 */
+@supports not (background: color-mix(in srgb, red 50%, blue)) {
+    .tabs-rail { background: rgba(13, 17, 23, .82); }
+    html[data-theme="light"] .tabs-rail { background: rgba(242, 244, 248, .88); }
+}
+/* 内容与头部分栏保持同一左右边界 */
+.tabs-rail-inner {
+    max-width: var(--shell-w);
+    margin: 0 auto;
+    padding: 9px 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+/* 胶囊容器：单行横向排列，超宽横向滑动（绝不换行） */
 .nav-tabs {
     flex: 1 1 auto;
     display: flex;
+    align-items: center;
     gap: 6px;
     overflow-x: auto;
+    overflow-y: hidden;
+    flex-wrap: nowrap;          /* ★ 关键：只横向排，永不折行 */
+    justify-content: flex-start;
     scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
     min-width: 0;
 }
 .nav-tabs::-webkit-scrollbar { display: none; }
+/* 两端渐隐：提示「还能往左 / 往右滑」（类名由底部脚本按实际滚动量切换） */
+.tabs-rail.fade-r .nav-tabs {
+    -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 30px), transparent 100%);
+            mask-image: linear-gradient(to right, #000 calc(100% - 30px), transparent 100%);
+}
+.tabs-rail.fade-l .nav-tabs {
+    -webkit-mask-image: linear-gradient(to left, #000 calc(100% - 30px), transparent 100%);
+            mask-image: linear-gradient(to left, #000 calc(100% - 30px), transparent 100%);
+}
+.tabs-rail.fade-l.fade-r .nav-tabs {
+    -webkit-mask-image: linear-gradient(to right, transparent 0, #000 30px,
+                                        #000 calc(100% - 30px), transparent 100%);
+            mask-image: linear-gradient(to right, transparent 0, #000 30px,
+                                       #000 calc(100% - 30px), transparent 100%);
+}
 .nav-tabs .tab {
     padding: 5px 13px;
     font-size: 13px;
@@ -1415,6 +1465,11 @@ a, button, .card, .fcard, .tab, .pg {
         padding-left: env(safe-area-inset-left);
         padding-right: env(safe-area-inset-right);
     }
+    /* 独立分类条同样避开左右安全区（横屏 / 刘海屏） */
+    .tabs-rail {
+        padding-left: env(safe-area-inset-left);
+        padding-right: env(safe-area-inset-right);
+    }
     .grid, .pager, .foot-cards, .slider, .newsbar {
         padding-left: max(20px, env(safe-area-inset-left));
         padding-right: max(20px, env(safe-area-inset-right));
@@ -1438,12 +1493,13 @@ a, button, .card, .fcard, .tab, .pg {
 
 /* ---------- ≤ 720px：大手机 / 导航重排 ---------- */
 @media (max-width: 720px) {
-    /* 导航：分类换行到第二行，可横向滑动 */
-    .header-inner { padding: 8px 14px; gap: 10px; }
+    /* 导航：分类已独立成下方单独一行，此处只排品牌 + 搜索 + 主题 */
+    .header-inner { padding: 8px 14px; gap: 10px; flex-wrap: nowrap; }
     /* ★ 搜索框 + 主题按钮推到最右侧（margin-left:auto 吃掉剩余空间） */
     .header-right { margin-left: auto; }
-    .nav-tabs { order: 3; flex-basis: 100%; padding-bottom: 2px; }
     .brand-name { font-size: 15px; }
+    /* 独立分类条：手机端左右留白与卡片区对齐 */
+    .tabs-rail-inner { padding: 7px 14px; }
 
     /* 触摸目标放大到 44px（iOS / Android 可点击最小推荐值） */
     .tab {
@@ -1991,7 +2047,10 @@ a, button, .card, .fcard, .tab, .pg {
 .stat-line b { color: var(--text); font-weight: 600; }
 
 /* 锚点跳转时留出吸顶导航的高度，避免标题被盖住（skip-link 也用得到） */
-#grid, .content .slider, #pager { scroll-margin-top: calc(var(--header-h, 62px) + 16px); }
+/* 锚点跳转：多让出一个分类条的高度，避免被吸顶的两条挡住 */
+#grid, .content .slider, #pager {
+    scroll-margin-top: calc(var(--header-h, 62px) + var(--rail-h, 54px) + 16px);
+}
 
 /* ---------- 汉堡按钮（默认隐藏，窄屏才出现） ---------- */
 .menu-btn {
