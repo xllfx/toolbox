@@ -68,8 +68,10 @@ var TOOLS = [
             { pan: 'baidu', link: 'https://pan.baidu.com/s/示例链接2', code: '8888' }
         ],
         cover: '',
-        link: 'https://pan.baidu.com/s/示例链接1',
-        code: 'abcd'
+        link: 'https://pan.quark.cn/s/a855ca8f5354',
+        code: 'abcd',
+        lock: true
+
     },
     {
         id: 2,

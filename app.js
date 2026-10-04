@@ -1257,7 +1257,16 @@
         if (getBtn) {
             getBtn.addEventListener('click', function () {
                 var url = (curPan && curPan.link) || t.link;
-                if (url) window.open(url, '_blank', 'noopener');
+                if (!url) return;
+                /* ↓↓↓ 提取码门禁 ↓↓↓ */
+                if (window.XLGate && XLGate.need(t.lock) && !XLGate.passed()) {
+                    XLGate.verify(function () {
+                        window.open(url, '_blank', 'noopener');
+                    });
+                    return;
+                }
+                /* ↑↑↑ 门禁结束 ↑↑↑ */
+                window.open(url, '_blank', 'noopener');
             });
         }
 
