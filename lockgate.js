@@ -17,7 +17,7 @@
         api: 'https://zsff.cbflf.cn/App/zm/xqlist?checkcode=1&key=XLLFX2026CODEKEY',
 
         /* ★ 小程序码图片地址（用户扫它拿提取码） */
-        qrcode: 'https://cdn.jsdelivr.net/gh/xllfx/images@main/qrcode.jpg',
+        qrcode: 'https://cdn.jsdelivr.net/gh/xllfx/images@main/qrcode.png',
 
         /* 文案（随便改） */
         title: '需要提取码',
